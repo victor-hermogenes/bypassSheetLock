@@ -1,5 +1,4 @@
 import PySimpleGUI as sg
-import openpyxl
 import os
 
 def unprotect_excel(file_path):
