@@ -8,6 +8,11 @@ def remove_workbook_protection(file_path):
     try:
         temp_dir = mkdtemp()
 
+        # Create a backup of the original file
+        backup_file_path = file_path + '.backup'
+        copyfile(file_path, backup_file_path)
+        print(f"Backup created at: {backup_file_path}")
+
         # Open the Excel file as a zip file and extract its contents
         with zipfile.ZipFile(file_path, 'r') as zip_ref:
             zip_ref.extractall(temp_dir)
@@ -32,11 +37,6 @@ def remove_workbook_protection(file_path):
                     full_path = os.path.join(root, file)
                     arcname = os.path.relpath(full_path, temp_dir)
                     zip_out.write(full_path, arcname)
-        
-                # Create a backup of the original file
-        backup_file_path = file_path + '.backup'
-        copyfile(file_path, backup_file_path)
-        print(f"Backup created at: {backup_file_path}")
 
         rmtree(temp_dir)
         print("Workbook protection successfully removed.")
@@ -86,3 +86,4 @@ def remove_sheet_protection(file_path):
 # Usage example
 file_path = "C:\\Users\\Master\\Desktop\\Tabelas importadoras\\Rodonaves\\TestPythonCode.xlsx"
 remove_workbook_protection(file_path)
+remove_sheet_protection(file_path)
