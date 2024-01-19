@@ -4,17 +4,21 @@ import xml.etree.ElementTree as ET
 from tempfile import mkdtemp
 from shutil import rmtree, copyfile
 
-file_path = input('Caminho para a planilha: ')
-
 def bypassSheetLock(file_path):
     try:
         print(f"Reading Excel file {file_path}")
+
+        # Namespace declarations
         namespaces = {
-            '', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-            'r', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
-            # add additional namespace decalration if needed
+            '': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
+            'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+            # Add additional namespaces if needed
         }
-        namespace_uri = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'
+
+        # Register namespaces
+        for prefix, uri in namespaces.items():
+            ET.register_namespace(prefix, uri)
+
         temp_dir = mkdtemp()
         modified_files = []
 
@@ -23,63 +27,58 @@ def bypassSheetLock(file_path):
             zip_ref.extractall(temp_dir)
 
         # Find workbookProtection
-        print("Looking for workbook Protection...")
-        workbook_path = f"{temp_dir}/xl/workbook.xml"
+        workbook_path = os.path.join(temp_dir, "xl", "workbook.xml")
         workbook_tree = ET.parse(workbook_path)
         workbook_root = workbook_tree.getroot()
-        workbook_protection = workbook_root.find(f'{{{namespace_uri}}}workbookProtection')
 
-        # Delete workbookProtection
+        # Find the workbookProtection element
+        workbook_protection = workbook_root.find('workbookProtection', namespaces)
         if workbook_protection is not None:
-                print("Removing workbook protection...")
-                workbook_root.remove(workbook_protection)
-                workbook_tree.write(workbook_path)
-                modified_files.append(workbook_path)
-                print("Worbook protection deleted.")
+            print("Removing workbook protection...")
+            workbook_root.remove(workbook_protection)
+            workbook_tree.write(workbook_path, encoding='UTF-8', xml_declaration=True)
+            modified_files.append(workbook_path)
+        else:
+            print("workbookProtection not found...")
 
-        # Find sheetProtection
-        print("Looking for worksheet protection.")
-        sheet_dir = f"{temp_dir}/xl/worksheets"
+        # Find and remove sheetProtection
+        sheet_dir = os.path.join(temp_dir, "xl", "worksheets")
         for sheet_file in os.listdir(sheet_dir):
             if sheet_file.endswith('.xml'):
-                sheet_path = f"{sheet_dir}/{sheet_file}"
+                sheet_path = os.path.join(sheet_dir, sheet_file)
                 sheet_tree = ET.parse(sheet_path)
                 sheet_root = sheet_tree.getroot()
-                sheet_protection = sheet_root.find(f'{{{namespace_uri}}}sheetProtection')
-
-                # Delete sheetProtection
+                sheet_protection = sheet_root.find('.//sheetProtection', namespaces)
                 if sheet_protection is not None:
-                    print("Removing worksheet protection...")
-                    sheet_root.remove(sheet_protection)
-                    sheet_tree.write(sheet_path)
-                    modified_files.append(sheet_path)
-                    print("Worksheet protection deleted.")
+                    print(f"Removing protection from {sheet_file}...")
+                    parent_element = sheet_protection.find('..')
+                    if parent_element is not None:
+                        parent_element.remove(sheet_protection)
+                        sheet_tree.write(sheet_path, encoding='UTF-8', xml_declaration=True)
+                        modified_files.append(sheet_path)
+                else:
+                    print("sheetProtection not found")
 
-        # Create a backup of the original file for safe measures
+        # Create a backup of the original file
         backup_file_path = file_path + '.backup'
-        print(f"Creating backup at {backup_file_path} for safety measures...")
         copyfile(file_path, backup_file_path)
-        print(f"Backup created at: {backup_file_path}.")
+        print(f"Backup created at: {backup_file_path}")
 
-        # Re-zip files, only modifying the files that were changed
-        print("Trying to rezip the file...")
+        # Re-zip files
         with zipfile.ZipFile(file_path, 'w', zipfile.ZIP_DEFLATED) as zip_out:
             for root, _, files in os.walk(temp_dir):
                 for file in files:
                     full_path = os.path.join(root, file)
                     arcname = os.path.relpath(full_path, temp_dir)
-                    if full_path in modified_files:
-                        zip_out.write(full_path, arcname)
-                    else:
-                        with open(full_path, 'rb') as file_data:
-                            zip_out.writestr(os.path.relpath(full_path, temp_dir), file_data.read())
+                    zip_out.write(full_path, arcname) if full_path in modified_files else zip_out.writestr(arcname, open(full_path, 'rb').read())
 
-        # Warning
-        print("File rezipped.")
+        # Clean up
         rmtree(temp_dir)
-        print("Protection removal process completed!")
-    except Exception as e:
-        print(f"Error: {e}")
+        print("Protection removal process completed.")
 
-# Test
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# Usage
+file_path = "C:\\Users\\Master\\Desktop\\Tabelas importadoras\\Rodonaves\\TestPythonCode.xlsx"
 bypassSheetLock(file_path)
