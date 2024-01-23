@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
-import time, os
+import time
 from removefunctions import remove_workbook_protection as rwp
 
 # Define path to icon
-icon_path = os.path(os.getcwd(), 'bypassSheetLock.ico')
+icon_path = 'bypassSheetLock.ico'
 
 
 # Callback function to update the progress bar and output box
