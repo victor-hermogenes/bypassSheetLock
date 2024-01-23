@@ -1,6 +1,10 @@
 import PySimpleGUI as sg
-import time
+import time, os
 from removefunctions import remove_workbook_protection as rwp
+
+# Define path to icon
+icon_path = os.path(os.getcwd(), 'bypassSheetLock.ico')
+
 
 # Callback function to update the progress bar and output box
 def callback(progress_bar, output_box, message, progress):
@@ -19,7 +23,7 @@ main_layout = [
 ]
 
 # Create window that will open to show interface
-main_window = sg.Window("bypassSheetLock", main_layout)
+main_window = sg.Window("bypassSheetLock", main_layout, icon=icon_path)
 
 # Event loop
 try:
@@ -36,7 +40,7 @@ try:
                 [sg.ProgressBar(100, orientation='h', size=(20, 20), key='progressbar')],
                 [sg.Multiline(default_text='Starting...\n', size=(40, 10), key='output')],
             ]
-            popup_window = sg.Window("Unprotecting...", layout_progress).finalize()
+            popup_window = sg.Window("Unprotecting...", layout_progress, icon=icon_path).finalize()
             progress_bar = popup_window['progressbar']
             output_box = popup_window['output']
 
