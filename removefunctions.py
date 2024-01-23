@@ -83,13 +83,15 @@ def remove_workbook_protection(file_path, callback):
 
                 step_count += 1
                 simulate_step(callback, "Saving modifications...", step_count, total_steps)
-                step_count += 1
-                simulate_step(callback, "Zipping file again...", step_count, total_steps)
-                step_count += 1
-                simulate_step(callback, "Sheet protection successfully removed from all worksheets.", step_count, total_steps)
-                step_count += 1
                 with open(sheet_path, 'w', encoding='utf-8') as file:
                     file.write(xml_content)
+
+                step_count += 1
+                simulate_step(callback, "Zipping file again...", step_count, total_steps)
+        step_count += 1
+        
+        simulate_step(callback, "Sheet protection successfully removed from all worksheets.", step_count, total_steps)
+        step_count += 1
 
         with zipfile.ZipFile(file_path, 'w', zipfile.ZIP_DEFLATED) as zip_out:
             for root, _, files in os.walk(temp_dir):
