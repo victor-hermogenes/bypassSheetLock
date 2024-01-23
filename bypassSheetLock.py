@@ -6,6 +6,8 @@ def callback(progress_bar, output_box, message, progress):
     progress_bar.UpdateBar(progress)
     output_box.Update(f'{message}\n', append=True)
 
+sg.theme('DarkAmber')
+
 # Create interface
 main_layout = [
     [sg.Text("Please, this program was created to unlock sheets that you forgot!")],
