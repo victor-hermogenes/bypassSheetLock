@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+import time
 from removefunctions import remove_workbook_protection as rwp
 
 # Callback function to update the progress bar and output box
@@ -40,6 +41,8 @@ try:
             output_box = popup_window['output']
 
             rwp(file_path, lambda msg, p=0: callback(progress_bar, output_box, msg, p))
+
+            time.sleep(5)
 
             popup_window.close()
 
